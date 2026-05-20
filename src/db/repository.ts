@@ -1,22 +1,18 @@
-import type { Chart, Dashboard } from '~/components/dashboards/dashboards.types';
-import { seed } from '~/db/seed';
+import { randomUUID } from 'crypto';
 
-let nextDashboardCounter = 1;
-const newId = (): string => {
-  const sequence = nextDashboardCounter++;
-  return `dash-new-${Date.now()}-${sequence}`;
-};
+import type { Chart, Dashboard } from '~/components/dashboards/dashboards.types';
+import { mockData } from '~/db/data';
 
 export class InMemoryRepository {
   private readonly _dashboards: Map<string, Dashboard>;
   private readonly _chartsByDashboard: Map<string, Chart[]>;
 
-  constructor({ seed: seedData }: { seed: { dashboards: Dashboard[]; charts: Chart[] } }) {
+  constructor({ mockData }: { mockData: { dashboards: Dashboard[]; charts: Chart[] } }) {
     this._dashboards = new Map(
-      seedData.dashboards.map(dashboard => [dashboard.id, { ...dashboard }])
+      mockData.dashboards.map(dashboard => [dashboard.id, { ...dashboard }])
     );
     this._chartsByDashboard = new Map();
-    for (const chart of seedData.charts) {
+    for (const chart of mockData.charts) {
       const chartsForDashboard = this._chartsByDashboard.get(chart.dashboardId) ?? [];
       chartsForDashboard.push({ ...chart });
       this._chartsByDashboard.set(chart.dashboardId, chartsForDashboard);
@@ -25,23 +21,23 @@ export class InMemoryRepository {
 
   private _isVisible = ({
     dashboard,
-    tenantId,
+    tenant,
     userId
   }: {
     dashboard: Dashboard;
-    tenantId: string;
+    tenant: string;
     userId: string;
   }): boolean => {
     if (dashboard.deletedAt !== null) return false;
-    if (dashboard.tenantId !== tenantId) return false;
+    if (dashboard.tenant !== tenant) return false;
     if (dashboard.ownerId === userId) return true;
     return dashboard.isShared === true;
   };
 
-  listDashboards = ({ tenantId, userId }: { tenantId: string; userId: string }): Dashboard[] => {
+  listDashboards = ({ tenant, userId }: { tenant: string; userId: string }): Dashboard[] => {
     const visibleDashboards: Dashboard[] = [];
     for (const dashboard of this._dashboards.values()) {
-      if (this._isVisible({ dashboard, tenantId, userId })) {
+      if (this._isVisible({ dashboard, tenant, userId })) {
         visibleDashboards.push({ ...dashboard });
       }
     }
@@ -50,17 +46,17 @@ export class InMemoryRepository {
   };
 
   findDashboardById = ({
-    tenantId,
+    tenant,
     userId,
     id
   }: {
-    tenantId: string;
+    tenant: string;
     userId: string;
     id: string;
   }): Dashboard | null => {
     const dashboard = this._dashboards.get(id);
     if (!dashboard) return null;
-    if (!this._isVisible({ dashboard, tenantId, userId })) return null;
+    if (!this._isVisible({ dashboard, tenant, userId })) return null;
     return { ...dashboard };
   };
 
@@ -75,19 +71,19 @@ export class InMemoryRepository {
   };
 
   createDashboard = ({
-    tenantId,
+    tenant,
     ownerId,
     title,
     isShared
   }: {
-    tenantId: string; 
+    tenant: string;
     ownerId: string;
     title: string;
     isShared?: boolean;
   }): Dashboard => {
     const dashboard: Dashboard = {
-      id: newId(),
-      tenantId,
+      id: randomUUID(),
+      tenant,
       ownerId,
       title,
       isShared: isShared ?? false,
@@ -101,28 +97,23 @@ export class InMemoryRepository {
   };
 
   softDeleteDashboard = ({
-    tenantId,
+    tenant,
     ownerId,
     id
   }: {
-    tenantId: string;
+    tenant: string;
     ownerId: string;
     id: string;
   }): boolean => {
     const dashboard = this._dashboards.get(id);
     if (!dashboard) return false;
     if (dashboard.deletedAt !== null) return false;
-    if (dashboard.tenantId !== tenantId) return false;
+    if (dashboard.tenant !== tenant) return false;
     if (dashboard.ownerId !== ownerId) return false;
     dashboard.deletedAt = new Date();
     return true;
   };
 
-  /**
-   * Compare-and-swap on `lastRefreshedAt`. Updates only if the current value
-   * equals `expectedPriorAt` (both Date instances must be equal by timestamp, or both null).
-   * Returns the post-state.
-   */
   updateLastRefreshedAtIfUnchanged = ({
     id,
     expectedPriorAt,
@@ -146,4 +137,4 @@ export class InMemoryRepository {
   };
 }
 
-export const repository = new InMemoryRepository({ seed });
+export const repository = new InMemoryRepository({ mockData });

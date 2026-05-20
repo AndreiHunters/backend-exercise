@@ -34,9 +34,6 @@ export const createWarehouseClient = ({ baseUrl }: { baseUrl: string }): Warehou
   };
 };
 
-/**
- * Default singleton used by application code.
- */
 export const warehouseClient: WarehouseClient = createWarehouseClient({
   baseUrl: config.MOCK_WAREHOUSE_BASE_URL
 });

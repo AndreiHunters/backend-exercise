@@ -1,6 +1,6 @@
 export interface UserInfo {
   userId: string;
-  tenantId: string;
+  tenant: string;
 }
 
 declare module 'express-serve-static-core' {

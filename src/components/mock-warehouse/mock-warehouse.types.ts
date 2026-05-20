@@ -31,11 +31,6 @@ export interface ExecuteResponse {
   rowCount: number;
   sqlPreview: string;
 }
-
-/**
- * Module-level state for failure injection. The mock warehouse keeps a set of
- * SQL substrings; any execute call whose `sql` contains one of these returns 500.
- */
 class FailureInjector {
   private readonly _substrings = new Set<string>();
 

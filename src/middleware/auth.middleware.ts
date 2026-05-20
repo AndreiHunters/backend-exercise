@@ -9,15 +9,26 @@ const readHeader = ({ req, name }: { req: Request; name: string }): string | und
   return trimmed.length > 0 ? trimmed : undefined;
 };
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const userId = readHeader({ req, name: 'x-user-id' });
-  const tenantId = readHeader({ req, name: 'x-tenant-id' });
+const readQuery = ({ req, name }: { req: Request; name: string }): string | undefined => {
+  const value = req.query[name];
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+};
 
-  if (!userId || !tenantId) {
-    const apiResponse = new APIResponse({ req, res });
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  const apiResponse = new APIResponse({ req, res });
+
+  const userId = readHeader({ req, name: 'x-user-id' });
+  if (!userId) {
     return apiResponse.Unauthorized({ message: 'Missing authentication headers' });
   }
 
-  req.userInfo = { userId, tenantId };
+  const tenant = readQuery({ req, name: 'tenant' });
+  if (!tenant) {
+    return apiResponse.BadRequest({ message: "Missing required query parameter 'tenant'" });
+  }
+
+  req.userInfo = { userId, tenant };
   next();
 };
