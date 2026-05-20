@@ -30,10 +30,8 @@ export const app = express();
 app.use(express.json({ limit: '1mb' }));
 app.use(requestLogger);
 
-// The mock warehouse is unauthenticated for ease of demoing.
 app.use(mockWarehouseBasePath, mockWarehouseRouter);
 
-// Dashboards require auth headers.
 app.use(dashboardsBasePath, authMiddleware, dashboardsRouter);
 
 app.use((req: Request, res: Response) => {

@@ -1,6 +1,6 @@
 export interface Dashboard {
   id: string;
-  tenantId: string;
+  tenant: string;
   ownerId: string;
   title: string;
   isShared: boolean;

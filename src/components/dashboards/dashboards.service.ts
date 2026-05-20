@@ -11,7 +11,7 @@ export const listVisibleDashboards = ({
   repo: InMemoryRepository;
   userInfo: UserInfo;
 }): Dashboard[] => {
-  return repo.listDashboards({ tenantId: userInfo.tenantId, userId: userInfo.userId });
+  return repo.listDashboards({ tenant: userInfo.tenant, userId: userInfo.userId });
 };
 
 export const getVisibleDashboardWithCharts = ({
@@ -24,7 +24,7 @@ export const getVisibleDashboardWithCharts = ({
   id: string;
 }): DashboardWithCharts => {
   const dashboard = repo.findDashboardById({
-    tenantId: userInfo.tenantId,
+    tenant: userInfo.tenant,
     userId: userInfo.userId,
     id
   });
@@ -47,19 +47,13 @@ export const createDashboard = ({
   isShared?: boolean;
 }): Dashboard => {
   return repo.createDashboard({
-    tenantId: userInfo.tenantId,
+    tenant: userInfo.tenant,
     ownerId: userInfo.userId,
     title,
     isShared
   });
 };
 
-/**
- * Soft-deletes a dashboard owned by the caller in the caller's tenant.
- * Returns `true` if a row was modified, otherwise throws NotFoundError so the
- * caller (controller) does not need to know the difference between
- * "doesn't exist" and "not your dashboard" — both map to 404.
- */
 export const softDeleteDashboard = ({
   repo,
   userInfo,
@@ -70,7 +64,7 @@ export const softDeleteDashboard = ({
   id: string;
 }): void => {
   const deleted = repo.softDeleteDashboard({
-    tenantId: userInfo.tenantId,
+    tenant: userInfo.tenant,
     ownerId: userInfo.userId,
     id
   });

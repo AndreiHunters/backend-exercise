@@ -6,12 +6,6 @@ import { APIResponse } from '~/helpers/response.helper';
 type RequestPart = 'body' | 'params' | 'query';
 const REQUEST_PARTS: RequestPart[] = ['body', 'params', 'query'];
 
-/**
- * Express middleware factory: validates `req.body`, `req.params`, and `req.query`
- * against the matching keys of the provided Zod schema. On success, the parsed
- * (and possibly coerced) values are written back onto `req` so handlers see typed data.
- * On failure, responds 400 with `{ error: 'Validation failed', details: [...] }`.
- */
 export const validator = ({ schema }: { schema: z.ZodObject<z.ZodRawShape> }) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const shape = schema.shape;
@@ -27,9 +21,7 @@ export const validator = ({ schema }: { schema: z.ZodObject<z.ZodRawShape> }) =>
           details: parsed.error.issues
         });
       }
-
-      // Replace the request part with the parsed/coerced value.
-      // We intentionally assign through a typed alias to avoid `any`.
+      
       const writable = req as unknown as Record<RequestPart, unknown>;
       writable[part] = parsed.data;
     }

@@ -13,7 +13,6 @@ import {
 } from './dashboards.service';
 
 const requireUserInfo = ({ req }: { req: Request }): UserInfo => {
-  // auth middleware guarantees this is set on protected routes
   return req.userInfo as UserInfo;
 };
 
