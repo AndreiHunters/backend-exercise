@@ -25,14 +25,8 @@ export class APIResponse {
   Unauthorized = ({ message }: { message: string }): Response =>
     this._res.status(401).json({ error: message });
 
-  Forbidden = ({ message }: { message: string }): Response =>
-    this._res.status(403).json({ error: message });
-
   NotFound = ({ message }: { message: string }): Response =>
     this._res.status(404).json({ error: message });
-
-  Conflict = ({ message }: { message: string }): Response =>
-    this._res.status(409).json({ error: message });
 
   TooManyRequests = ({
     message,

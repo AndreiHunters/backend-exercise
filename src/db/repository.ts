@@ -3,21 +3,23 @@ import { seed } from '~/db/seed';
 
 let nextDashboardCounter = 1;
 const newId = (): string => {
-  const n = nextDashboardCounter++;
-  return `dash-new-${Date.now()}-${n}`;
+  const sequence = nextDashboardCounter++;
+  return `dash-new-${Date.now()}-${sequence}`;
 };
 
 export class InMemoryRepository {
   private readonly _dashboards: Map<string, Dashboard>;
   private readonly _chartsByDashboard: Map<string, Chart[]>;
 
-  constructor({ seed: initial }: { seed: { dashboards: Dashboard[]; charts: Chart[] } }) {
-    this._dashboards = new Map(initial.dashboards.map(d => [d.id, { ...d }]));
+  constructor({ seed: seedData }: { seed: { dashboards: Dashboard[]; charts: Chart[] } }) {
+    this._dashboards = new Map(
+      seedData.dashboards.map(dashboard => [dashboard.id, { ...dashboard }])
+    );
     this._chartsByDashboard = new Map();
-    for (const chart of initial.charts) {
-      const list = this._chartsByDashboard.get(chart.dashboardId) ?? [];
-      list.push({ ...chart });
-      this._chartsByDashboard.set(chart.dashboardId, list);
+    for (const chart of seedData.charts) {
+      const chartsForDashboard = this._chartsByDashboard.get(chart.dashboardId) ?? [];
+      chartsForDashboard.push({ ...chart });
+      this._chartsByDashboard.set(chart.dashboardId, chartsForDashboard);
     }
   }
 
@@ -37,14 +39,14 @@ export class InMemoryRepository {
   };
 
   listDashboards = ({ tenantId, userId }: { tenantId: string; userId: string }): Dashboard[] => {
-    const result: Dashboard[] = [];
-    for (const d of this._dashboards.values()) {
-      if (this._isVisible({ dashboard: d, tenantId, userId })) {
-        result.push({ ...d });
+    const visibleDashboards: Dashboard[] = [];
+    for (const dashboard of this._dashboards.values()) {
+      if (this._isVisible({ dashboard, tenantId, userId })) {
+        visibleDashboards.push({ ...dashboard });
       }
     }
-    result.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return result;
+    visibleDashboards.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return visibleDashboards;
   };
 
   findDashboardById = ({
@@ -56,20 +58,20 @@ export class InMemoryRepository {
     userId: string;
     id: string;
   }): Dashboard | null => {
-    const d = this._dashboards.get(id);
-    if (!d) return null;
-    if (!this._isVisible({ dashboard: d, tenantId, userId })) return null;
-    return { ...d };
+    const dashboard = this._dashboards.get(id);
+    if (!dashboard) return null;
+    if (!this._isVisible({ dashboard, tenantId, userId })) return null;
+    return { ...dashboard };
   };
 
   findDashboardByIdRaw = ({ id }: { id: string }): Dashboard | null => {
-    const d = this._dashboards.get(id);
-    return d ? { ...d } : null;
+    const dashboard = this._dashboards.get(id);
+    return dashboard ? { ...dashboard } : null;
   };
 
   listChartsByDashboardId = ({ dashboardId }: { dashboardId: string }): Chart[] => {
     const charts = this._chartsByDashboard.get(dashboardId) ?? [];
-    return charts.map(c => ({ ...c }));
+    return charts.map(chart => ({ ...chart }));
   };
 
   createDashboard = ({
@@ -107,12 +109,12 @@ export class InMemoryRepository {
     ownerId: string;
     id: string;
   }): boolean => {
-    const d = this._dashboards.get(id);
-    if (!d) return false;
-    if (d.deletedAt !== null) return false;
-    if (d.tenantId !== tenantId) return false;
-    if (d.ownerId !== ownerId) return false;
-    d.deletedAt = new Date();
+    const dashboard = this._dashboards.get(id);
+    if (!dashboard) return false;
+    if (dashboard.deletedAt !== null) return false;
+    if (dashboard.tenantId !== tenantId) return false;
+    if (dashboard.ownerId !== ownerId) return false;
+    dashboard.deletedAt = new Date();
     return true;
   };
 
@@ -130,17 +132,17 @@ export class InMemoryRepository {
     expectedPriorAt: Date | null;
     now: Date;
   }): { updated: boolean; lastRefreshedAt: Date | null } => {
-    const d = this._dashboards.get(id);
-    if (!d) return { updated: false, lastRefreshedAt: null };
+    const dashboard = this._dashboards.get(id);
+    if (!dashboard) return { updated: false, lastRefreshedAt: null };
 
-    const currentMs = d.lastRefreshedAt?.getTime() ?? null;
+    const currentMs = dashboard.lastRefreshedAt?.getTime() ?? null;
     const expectedMs = expectedPriorAt?.getTime() ?? null;
     if (currentMs !== expectedMs) {
-      return { updated: false, lastRefreshedAt: d.lastRefreshedAt };
+      return { updated: false, lastRefreshedAt: dashboard.lastRefreshedAt };
     }
 
-    d.lastRefreshedAt = now;
-    return { updated: true, lastRefreshedAt: d.lastRefreshedAt };
+    dashboard.lastRefreshedAt = now;
+    return { updated: true, lastRefreshedAt: dashboard.lastRefreshedAt };
   };
 }
 

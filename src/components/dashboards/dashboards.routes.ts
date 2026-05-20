@@ -14,26 +14,19 @@ import {
   getDashboardByIdSchema
 } from './dashboards.validations';
 
-export const BASE_PATH = '/dashboards';
+export const dashboardsBasePath = '/dashboards';
 
-export const Router = () => {
-  const router = express.Router();
+export const dashboardsRouter = express.Router();
 
-  router.get('/', getDashboardsController);
-
-  router.get(
-    '/:id',
-    validator({ schema: getDashboardByIdSchema }),
-    getDashboardByIdController
-  );
-
-  router.post('/', validator({ schema: createDashboardSchema }), createDashboardController);
-
-  router.delete(
-    '/:id',
-    validator({ schema: deleteDashboardSchema }),
-    deleteDashboardController
-  );
-
-  return router;
-};
+dashboardsRouter.get('/', getDashboardsController);
+dashboardsRouter.get(
+  '/:id',
+  validator({ schema: getDashboardByIdSchema }),
+  getDashboardByIdController
+);
+dashboardsRouter.post('/', validator({ schema: createDashboardSchema }), createDashboardController);
+dashboardsRouter.delete(
+  '/:id',
+  validator({ schema: deleteDashboardSchema }),
+  deleteDashboardController
+);
