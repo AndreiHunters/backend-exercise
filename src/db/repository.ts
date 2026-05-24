@@ -1,23 +1,44 @@
 import { randomUUID } from 'crypto';
+import { readFileSync, renameSync, writeFileSync } from 'fs';
+import { join } from 'path';
 
-import type { Chart, Dashboard } from '~/components/dashboards/dashboards.types';
-import { mockData } from '~/db/data';
+import { z } from 'zod';
 
-export class InMemoryRepository {
-  private readonly _dashboards: Map<string, Dashboard>;
-  private readonly _chartsByDashboard: Map<string, Chart[]>;
+import {
+  chartSchema,
+  dashboardSchema,
+  type Chart,
+  type Dashboard
+} from '~/components/dashboards/dashboards.types';
 
-  constructor({ mockData }: { mockData: { dashboards: Dashboard[]; charts: Chart[] } }) {
-    this._dashboards = new Map(
-      mockData.dashboards.map(dashboard => [dashboard.id, { ...dashboard }])
-    );
-    this._chartsByDashboard = new Map();
-    for (const chart of mockData.charts) {
-      const chartsForDashboard = this._chartsByDashboard.get(chart.dashboardId) ?? [];
-      chartsForDashboard.push({ ...chart });
-      this._chartsByDashboard.set(chart.dashboardId, chartsForDashboard);
-    }
+const DEFAULT_DATA_FILE = join(__dirname, 'data.json');
+
+const databaseSchema = z.object({
+  dashboards: z.array(dashboardSchema),
+  charts: z.array(chartSchema)
+});
+
+type Database = z.infer<typeof databaseSchema>;
+
+export class Repository {
+  private readonly _dataFile: string;
+
+  constructor({ dataFile = DEFAULT_DATA_FILE }: { dataFile?: string } = {}) {
+    this._dataFile = dataFile;
+    // Fail fast at startup if the DB file is missing or malformed.
+    this._read();
   }
+
+  private _read = (): Database => {
+    return databaseSchema.parse(JSON.parse(readFileSync(this._dataFile, 'utf-8')));
+  };
+
+  // Write-temp then rename so a crash mid-write can't leave a torn file.
+  private _write = (data: Database): void => {
+    const tmp = `${this._dataFile}.tmp`;
+    writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf-8');
+    renameSync(tmp, this._dataFile);
+  };
 
   private _isVisible = ({
     dashboard,
@@ -35,14 +56,9 @@ export class InMemoryRepository {
   };
 
   listDashboards = ({ tenant, userId }: { tenant: string; userId: string }): Dashboard[] => {
-    const visibleDashboards: Dashboard[] = [];
-    for (const dashboard of this._dashboards.values()) {
-      if (this._isVisible({ dashboard, tenant, userId })) {
-        visibleDashboards.push({ ...dashboard });
-      }
-    }
-    visibleDashboards.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return visibleDashboards;
+    return this._read()
+      .dashboards.filter(dashboard => this._isVisible({ dashboard, tenant, userId }))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   };
 
   findDashboardById = ({
@@ -54,20 +70,14 @@ export class InMemoryRepository {
     userId: string;
     id: string;
   }): Dashboard | null => {
-    const dashboard = this._dashboards.get(id);
+    const dashboard = this._read().dashboards.find(d => d.id === id);
     if (!dashboard) return null;
     if (!this._isVisible({ dashboard, tenant, userId })) return null;
-    return { ...dashboard };
-  };
-
-  findDashboardByIdRaw = ({ id }: { id: string }): Dashboard | null => {
-    const dashboard = this._dashboards.get(id);
-    return dashboard ? { ...dashboard } : null;
+    return dashboard;
   };
 
   listChartsByDashboardId = ({ dashboardId }: { dashboardId: string }): Chart[] => {
-    const charts = this._chartsByDashboard.get(dashboardId) ?? [];
-    return charts.map(chart => ({ ...chart }));
+    return this._read().charts.filter(chart => chart.dashboardId === dashboardId);
   };
 
   createDashboard = ({
@@ -81,6 +91,7 @@ export class InMemoryRepository {
     title: string;
     isShared?: boolean;
   }): Dashboard => {
+    const data = this._read();
     const dashboard: Dashboard = {
       id: randomUUID(),
       tenant,
@@ -88,12 +99,12 @@ export class InMemoryRepository {
       title,
       isShared: isShared ?? false,
       lastRefreshedAt: null,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
       deletedAt: null
     };
-    this._dashboards.set(dashboard.id, { ...dashboard });
-    this._chartsByDashboard.set(dashboard.id, []);
-    return { ...dashboard };
+    data.dashboards.push(dashboard);
+    this._write(data);
+    return dashboard;
   };
 
   softDeleteDashboard = ({
@@ -105,36 +116,16 @@ export class InMemoryRepository {
     ownerId: string;
     id: string;
   }): boolean => {
-    const dashboard = this._dashboards.get(id);
+    const data = this._read();
+    const dashboard = data.dashboards.find(d => d.id === id);
     if (!dashboard) return false;
     if (dashboard.deletedAt !== null) return false;
     if (dashboard.tenant !== tenant) return false;
     if (dashboard.ownerId !== ownerId) return false;
-    dashboard.deletedAt = new Date();
+    dashboard.deletedAt = new Date().toISOString();
+    this._write(data);
     return true;
-  };
-
-  updateLastRefreshedAtIfUnchanged = ({
-    id,
-    expectedPriorAt,
-    now
-  }: {
-    id: string;
-    expectedPriorAt: Date | null;
-    now: Date;
-  }): { updated: boolean; lastRefreshedAt: Date | null } => {
-    const dashboard = this._dashboards.get(id);
-    if (!dashboard) return { updated: false, lastRefreshedAt: null };
-
-    const currentMs = dashboard.lastRefreshedAt?.getTime() ?? null;
-    const expectedMs = expectedPriorAt?.getTime() ?? null;
-    if (currentMs !== expectedMs) {
-      return { updated: false, lastRefreshedAt: dashboard.lastRefreshedAt };
-    }
-
-    dashboard.lastRefreshedAt = now;
-    return { updated: true, lastRefreshedAt: dashboard.lastRefreshedAt };
   };
 }
 
-export const repository = new InMemoryRepository({ mockData });
+export const repository = new Repository();

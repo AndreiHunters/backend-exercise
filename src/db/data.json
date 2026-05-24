@@ -1,0 +1,132 @@
+{
+  "dashboards": [
+    {
+      "id": "b6d8e4a1-7c2f-4f5b-9a3e-2c1d8b5e7f4a",
+      "tenant": "ACME_CORP",
+      "ownerId": "7e2b1f4c-3d9a-4e8b-9c1d-5a8f3b6c2d4e",
+      "title": "New onboarding metrics",
+      "isShared": false,
+      "lastRefreshedAt": null,
+      "createdAt": "2026-05-21T08:42:17.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "e1f4c7a9-3b8d-4e2c-9f6a-5c8b2d1e3f7b",
+      "tenant": "ACME_CORP",
+      "ownerId": "7e2b1f4c-3d9a-4e8b-9c1d-5a8f3b6c2d4e",
+      "title": "Engineering velocity",
+      "isShared": false,
+      "lastRefreshedAt": "2026-05-21T03:00:00.000Z",
+      "createdAt": "2026-02-10T14:22:08.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "4a9c2d6e-5b1f-4c8a-8d3e-7b6f1c2d4e5a",
+      "tenant": "ACME_CORP",
+      "ownerId": "7e2b1f4c-3d9a-4e8b-9c1d-5a8f3b6c2d4e",
+      "title": "Sales pipeline overview",
+      "isShared": true,
+      "lastRefreshedAt": "2026-05-20T22:00:00.000Z",
+      "createdAt": "2026-03-05T11:48:51.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "d2e7f1c4-8a3b-4d5e-9c2f-1b6a8d4e7c9f",
+      "tenant": "ACME_CORP",
+      "ownerId": "7e2b1f4c-3d9a-4e8b-9c1d-5a8f3b6c2d4e",
+      "title": "Quarterly financial report",
+      "isShared": false,
+      "lastRefreshedAt": "2026-01-15T12:00:00.000Z",
+      "createdAt": "2026-01-12T08:30:00.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "7f1c4d8e-2b3a-4f5c-8e9d-6a1b3c5d7e9f",
+      "tenant": "GLOBEX_INDUSTRIES",
+      "ownerId": "f3a8b1c7-2d4e-4a9b-8c5f-1e6d3a7b9c2f",
+      "title": "Marketing funnel — Q1",
+      "isShared": true,
+      "lastRefreshedAt": "2026-05-21T01:00:00.000Z",
+      "createdAt": "2026-02-22T16:05:17.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "3c8f2e6d-1a4b-4c7e-9d5f-8a2b3c4d5e6f",
+      "tenant": "ACME_CORP",
+      "ownerId": "7e2b1f4c-3d9a-4e8b-9c1d-5a8f3b6c2d4e",
+      "title": "Customer survey 2025",
+      "isShared": true,
+      "lastRefreshedAt": "2026-03-31T22:00:00.000Z",
+      "createdAt": "2025-08-15T13:42:09.000Z",
+      "deletedAt": "2026-04-01T10:17:44.000Z"
+    }
+  ],
+  "charts": [
+    {
+      "id": "a1c3e5b7-2d4f-4a6c-8e0a-9b1c3d5e7f9a",
+      "dashboardId": "e1f4c7a9-3b8d-4e2c-9f6a-5c8b2d1e3f7b",
+      "title": "PRs merged this week",
+      "sql": "SELECT count(*) FROM pull_requests WHERE merged_at >= now() - interval '7 days' AND tenant = $1"
+    },
+    {
+      "id": "7b3d8c2f-9e1a-4d5b-bc6e-2f8a1b3c5d7e",
+      "dashboardId": "e1f4c7a9-3b8d-4e2c-9f6a-5c8b2d1e3f7b",
+      "title": "Deployments this month",
+      "sql": "SELECT count(*) FROM deployments WHERE created_at >= date_trunc('month', now()) AND tenant = $1"
+    },
+    {
+      "id": "4f1a9c5e-3b8d-4a2c-9f7b-5c8a1d3e6f9b",
+      "dashboardId": "e1f4c7a9-3b8d-4e2c-9f6a-5c8b2d1e3f7b",
+      "title": "Mean time to merge (hours)",
+      "sql": "SELECT avg(extract(epoch FROM (merged_at - created_at)) / 3600) FROM pull_requests WHERE tenant = $1 AND merged_at IS NOT NULL"
+    },
+    {
+      "id": "2e8d4c6a-1f3b-4e5a-9c8d-7a3b5c1d9e2f",
+      "dashboardId": "4a9c2d6e-5b1f-4c8a-8d3e-7b6f1c2d4e5a",
+      "title": "Open opportunities by stage",
+      "sql": "SELECT stage, count(*) FROM opportunities WHERE tenant = $1 AND status = 'open' GROUP BY stage ORDER BY stage"
+    },
+    {
+      "id": "6a4c1f8e-2b9d-4c3a-8e1f-5b7d2a4c6e8f",
+      "dashboardId": "4a9c2d6e-5b1f-4c8a-8d3e-7b6f1c2d4e5a",
+      "title": "Pipeline value (USD)",
+      "sql": "SELECT coalesce(sum(amount_usd), 0) FROM opportunities WHERE tenant = $1 AND status = 'open'"
+    },
+    {
+      "id": "9c5e2a7b-4f8d-4b6c-9a3d-1e8b6c2f4a5d",
+      "dashboardId": "d2e7f1c4-8a3b-4d5e-9c2f-1b6a8d4e7c9f",
+      "title": "Revenue by month",
+      "sql": "SELECT date_trunc('month', booked_at) AS month, sum(amount_usd) FROM invoices WHERE tenant = $1 GROUP BY 1 ORDER BY 1"
+    },
+    {
+      "id": "3e7b9c4f-5a1d-4f2e-8b5a-2c6d4e1f9a7b",
+      "dashboardId": "d2e7f1c4-8a3b-4d5e-9c2f-1b6a8d4e7c9f",
+      "title": "Top customers by ARR",
+      "sql": "SELECT customer_id, sum(arr_usd) AS arr FROM contracts WHERE tenant = $1 GROUP BY customer_id ORDER BY arr DESC LIMIT 10"
+    },
+    {
+      "id": "8d2f6e1a-9c4b-4a8e-bc7d-3f5e2a9b1c4d",
+      "dashboardId": "7f1c4d8e-2b3a-4f5c-8e9d-6a1b3c5d7e9f",
+      "title": "Funnel conversion by step",
+      "sql": "SELECT step, count(DISTINCT user_id) AS users FROM funnel_events WHERE tenant = $1 GROUP BY step ORDER BY step"
+    },
+    {
+      "id": "5a9d3c7f-6e2b-4d1a-9f8b-4c1e5a3b7d6e",
+      "dashboardId": "7f1c4d8e-2b3a-4f5c-8e9d-6a1b3c5d7e9f",
+      "title": "Campaign click-through rate",
+      "sql": "SELECT campaign_id, sum(clicks)::float / nullif(sum(impressions), 0) AS ctr FROM ad_metrics WHERE tenant = $1 GROUP BY campaign_id ORDER BY ctr DESC"
+    },
+    {
+      "id": "1f6a4d8c-7b3e-4c9d-8a2f-9b6e1d4a3c5f",
+      "dashboardId": "3c8f2e6d-1a4b-4c7e-9d5f-8a2b3c4d5e6f",
+      "title": "Average NPS score",
+      "sql": "SELECT avg(score) FROM survey_responses WHERE tenant = $1 AND survey_id = 'cust-sat-2025'"
+    },
+    {
+      "id": "b3e8f5a2-4c9d-4f7b-9d3e-6a8c1b5f4e2d",
+      "dashboardId": "3c8f2e6d-1a4b-4c7e-9d5f-8a2b3c4d5e6f",
+      "title": "Response volume by week",
+      "sql": "SELECT date_trunc('week', submitted_at) AS week, count(*) FROM survey_responses WHERE tenant = $1 AND survey_id = 'cust-sat-2025' GROUP BY 1 ORDER BY 1"
+    }
+  ]
+}
