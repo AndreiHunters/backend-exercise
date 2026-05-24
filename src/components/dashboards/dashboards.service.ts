@@ -1,6 +1,6 @@
 import { NotFoundError } from '~/helpers/error.utils';
 import type { UserInfo } from '~/helpers/http-helpers';
-import type { InMemoryRepository } from '~/db/repository';
+import type { Repository } from '~/db/repository';
 
 import type { Dashboard, DashboardWithCharts } from './dashboards.types';
 
@@ -8,7 +8,7 @@ export const listVisibleDashboards = ({
   repo,
   userInfo
 }: {
-  repo: InMemoryRepository;
+  repo: Repository;
   userInfo: UserInfo;
 }): Dashboard[] => {
   return repo.listDashboards({ tenant: userInfo.tenant, userId: userInfo.userId });
@@ -19,7 +19,7 @@ export const getVisibleDashboardWithCharts = ({
   userInfo,
   id
 }: {
-  repo: InMemoryRepository;
+  repo: Repository;
   userInfo: UserInfo;
   id: string;
 }): DashboardWithCharts => {
@@ -41,7 +41,7 @@ export const createDashboard = ({
   title,
   isShared
 }: {
-  repo: InMemoryRepository;
+  repo: Repository;
   userInfo: UserInfo;
   title: string;
   isShared?: boolean;
@@ -59,7 +59,7 @@ export const softDeleteDashboard = ({
   userInfo,
   id
 }: {
-  repo: InMemoryRepository;
+  repo: Repository;
   userInfo: UserInfo;
   id: string;
 }): void => {

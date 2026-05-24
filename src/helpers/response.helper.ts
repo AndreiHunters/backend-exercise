@@ -7,11 +7,11 @@ export class APIResponse {
     this._res = res;
   }
 
-  Success = ({ data }: { data: unknown }): Response => this._res.status(200).json(data);
+  Success = <T>({ data }: { data: T }): Response => this._res.status(200).json(data);
 
-  Created = ({ data }: { data: unknown }): Response => this._res.status(201).json(data);
+  Created = <T>({ data }: { data: T }): Response => this._res.status(201).json(data);
 
-  Accepted = ({ data }: { data: unknown }): Response => this._res.status(202).json(data);
+  Accepted = <T>({ data }: { data: T }): Response => this._res.status(202).json(data);
 
   BadRequest = ({
     message,

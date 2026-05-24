@@ -4,10 +4,6 @@ import {
   dashboardsBasePath,
   dashboardsRouter
 } from '~/components/dashboards/dashboards.routes';
-import {
-  mockWarehouseBasePath,
-  mockWarehouseRouter
-} from '~/components/mock-warehouse/mock-warehouse.routes';
 import { authMiddleware } from '~/middleware/auth.middleware';
 import { logger } from '~/utils/logger';
 
@@ -29,8 +25,6 @@ const requestLogger = (req: Request, res: Response, next: NextFunction) => {
 export const app = express();
 app.use(express.json({ limit: '1mb' }));
 app.use(requestLogger);
-
-app.use(mockWarehouseBasePath, mockWarehouseRouter);
 
 app.use(dashboardsBasePath, authMiddleware, dashboardsRouter);
 

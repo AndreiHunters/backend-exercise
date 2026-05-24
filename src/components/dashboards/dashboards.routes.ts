@@ -12,7 +12,7 @@ import {
   createDashboardSchema,
   deleteDashboardSchema,
   getDashboardByIdSchema
-} from './dashboards.validations';
+} from './dashboards.types';
 
 export const dashboardsBasePath = '/dashboards';
 
