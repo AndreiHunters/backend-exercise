@@ -4,7 +4,7 @@
 
 Dashboards live inside a tenant. A dashboard has an owner and can optionally be shared with the rest of the tenant. Each dashboard contains a number of charts, and each chart's data comes from running a query against our data warehouse.
 
-Because those queries are expensive, we don't run them on every page load. The warehouse keeps a cache of each chart's most recent result, and a scheduled job re-runs every chart's query once an hour to keep that cache fresh. So within a given hour, everyone viewing the same dashboard sees the same numbers — the snapshot from the previous hourly refresh.
+Because those queries are expensive, we don't run them on every page load. The warehouse keeps a cache of each chart's most recent result, and an automated scheduled process re-runs every chart's query once an hour to keep that cache fresh. So within a given hour, everyone viewing the same dashboard sees the same numbers — the snapshot from the previous hourly refresh.
 
 Users have been asking for a way to see fresher data without waiting for the next hour. That's what this feature ships: a "refresh now" action that re-runs the queries on demand. Since the underlying queries are expensive, a given dashboard can be on-demand refreshed at most once per hour.
 
@@ -16,4 +16,5 @@ Use `curl`, Postman, or any HTTP client to verify your work. Each warehouse call
 
 **Deliverable:** a working endpoint.
 
-**Time:** 60–75 minutes. AI tooling is expected; keep your chat visible.
+Using Google and AI tools is allowed.
+
