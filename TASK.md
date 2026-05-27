@@ -7,7 +7,7 @@ This is a multi-tenant service that manages **data dashboards**. Each tenant has
 Warehouse queries are expensive, so we don't run them on every page load. A scheduled job re-runs every chart's query **once an hour** and records the refresh time on the dashboard. Within an hourly window, everyone viewing the same dashboard sees the same snapshot — the one from the most recent hourly run.
 
 
-## Product requirment
+## Product requirement
 
 Users have been asking for a way to see fresher data without waiting for the next hourly tick. That's what this feature ships: a **"refresh now"** action that re-runs a dashboard's queries on demand. Because warehouse queries are expensive, a given dashboard can be on-demand-refreshed **at most once per hour**.
 
