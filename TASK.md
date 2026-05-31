@@ -4,7 +4,7 @@
 
 This is a multi-tenant service that manages **data dashboards**. Each tenant has its own dashboards, owned by a user in that tenant and optionally shared with the rest of the tenant. Each dashboard contains a number of **charts**. Each chart is defined by a SQL query that runs against our external data warehouse.
 
-Warehouse queries are expensive, so we don't run them on every page load. A scheduled job re-runs every chart's query **once an hour** and records the refresh time on the dashboard. Within an hourly window, everyone viewing the same dashboard sees the same snapshot — the one from the most recent hourly run.
+Warehouse queries are expensive, so we don't run them on every page load — the results are **cached** instead. A scheduled job re-runs every chart's query **once an hour** to refresh the cache and records the refresh time on the dashboard. Within an hourly window, everyone viewing the same dashboard sees the same cached snapshot — the one from the most recent hourly run.
 
 
 ## Product requirement
